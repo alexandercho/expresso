@@ -1,13 +1,25 @@
-name: CI
+name: CI and Deploy
 
 on:
     pull_request:
+        branches:
+            - develop
+            - main
+        types:
+            - opened
+            - reopened
+            - synchronize
+            - ready_for_review
     push:
+        branches:
+            - develop
+            - main
 
 jobs:
     changes:
         runs-on: ubuntu-latest
         outputs:
+            backend_changed: ${{ steps.filter.outputs.backend }}
             frontend_changed: ${{ steps.filter.outputs.frontend }}
         steps:
             - uses: actions/checkout@v4
@@ -16,6 +28,8 @@ jobs:
               uses: dorny/paths-filter@v3
               with:
                   filters: |
+                      backend:
+                        - 'backend/**'
                       frontend:
                         - 'frontend/**'
 
@@ -115,55 +129,66 @@ jobs:
             - run: pnpm install:all
             - run: pnpm test:api:deprecated
 
-    deploy_backend_auto:
+    validate_main_pr_source:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        steps:
+            - name: Ensure only develop can merge into main
+              run: |
+                  if [ "${{ github.head_ref }}" != "develop" ]; then
+                      echo "Only the develop branch can be merged into main."
+                      exit 1
+                  fi
+
+    validate_release_versions:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request' && github.head_ref == 'develop' && github.base_ref == 'main'
+        outputs:
+            any_incremented: ${{ steps.version_check.outputs.any_incremented }}
+            backend_incremented: ${{ steps.version_check.outputs.backend_incremented }}
+            frontend_incremented: ${{ steps.version_check.outputs.frontend_incremented }}
+            frontend_package_incremented: ${{ steps.version_check.outputs.frontend_package_incremented }}
+            frontend_app_incremented: ${{ steps.version_check.outputs.frontend_app_incremented }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26
+
+            - run: git fetch origin main
+
+            - id: version_check
+              run: node scripts/ci/evaluate-version-targets.js origin/main --require-any
+
+    staging_deploy_backend:
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
+            github.ref == 'refs/heads/develop' &&
+            needs.changes.outputs.backend_changed == 'true' &&
+            needs.version_match.result == 'success' &&
             needs.test_api_frontend.result == 'success' &&
             needs.test_api_latest.result == 'success' &&
             needs.test_api_legacy.result == 'success' &&
             needs.test_api_deprecated.result == 'success'
         needs:
+            - changes
+            - version_match
             - test_api_frontend
             - test_api_latest
             - test_api_legacy
             - test_api_deprecated
         steps:
-            - run: echo "Automatic backend deploy"
+            - run: echo "Staging backend deploy"
 
-    deploy_backend_manual_notice:
+    staging_deploy_frontend:
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
-            needs.test_api_latest.result == 'success' &&
-            needs.test_api_legacy.result == 'success' &&
-            needs.test_api_deprecated.result != 'success'
-        needs:
-            - test_api_latest
-            - test_api_legacy
-            - test_api_deprecated
-        steps:
-            - run: echo "Backend is manually deployable because latest and legacy passed but deprecated failed."
-
-    deploy_backend_blocked_notice:
-        runs-on: ubuntu-latest
-        if: >
-            github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
-            (needs.test_api_latest.result != 'success' || needs.test_api_legacy.result != 'success')
-        needs:
-            - test_api_latest
-            - test_api_legacy
-        steps:
-            - run: echo "Backend deployment is blocked because latest or legacy API tests failed."
-
-    deploy_frontend_auto:
-        runs-on: ubuntu-latest
-        if: >
-            github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
+            github.ref == 'refs/heads/develop' &&
             needs.changes.outputs.frontend_changed == 'true' &&
             needs.version_match.result == 'success' &&
             needs.test_api_frontend.result == 'success' &&
@@ -178,37 +203,67 @@ jobs:
             - test_api_legacy
             - test_api_deprecated
         steps:
-            - run: echo "Automatic frontend deploy"
+            - run: echo "Staging frontend deploy"
 
-    deploy_frontend_manual_notice:
+    determine_production_release_targets:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        outputs:
+            any_incremented: ${{ steps.version_check.outputs.any_incremented }}
+            backend_incremented: ${{ steps.version_check.outputs.backend_incremented }}
+            frontend_incremented: ${{ steps.version_check.outputs.frontend_incremented }}
+            frontend_package_incremented: ${{ steps.version_check.outputs.frontend_package_incremented }}
+            frontend_app_incremented: ${{ steps.version_check.outputs.frontend_app_incremented }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26
+
+            - id: version_check
+              run: node scripts/ci/evaluate-version-targets.js "${{ github.event.before }}" --require-any
+
+    production_deploy_backend:
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main' &&
-            needs.changes.outputs.frontend_changed == 'true' &&
+            needs.determine_production_release_targets.outputs.backend_incremented == 'true' &&
             needs.version_match.result == 'success' &&
             needs.test_api_frontend.result == 'success' &&
-            (needs.test_api_latest.result != 'success' || needs.test_api_legacy.result != 'success' || needs.test_api_deprecated.result != 'success')
+            needs.test_api_latest.result == 'success' &&
+            needs.test_api_legacy.result == 'success' &&
+            needs.test_api_deprecated.result == 'success'
         needs:
-            - changes
+            - determine_production_release_targets
             - version_match
             - test_api_frontend
             - test_api_latest
             - test_api_legacy
             - test_api_deprecated
         steps:
-            - run: echo "Frontend is manually deployable because frontend contract checks passed, but other API tests failed."
+            - run: echo "Production backend deploy"
 
-    deploy_frontend_blocked_notice:
+    production_deploy_frontend:
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
             github.ref == 'refs/heads/main' &&
-            needs.changes.outputs.frontend_changed == 'true' &&
-            (needs.version_match.result != 'success' || needs.test_api_frontend.result != 'success')
+            needs.determine_production_release_targets.outputs.frontend_incremented == 'true' &&
+            needs.version_match.result == 'success' &&
+            needs.test_api_frontend.result == 'success' &&
+            needs.test_api_latest.result == 'success' &&
+            needs.test_api_legacy.result == 'success' &&
+            needs.test_api_deprecated.result == 'success'
         needs:
-            - changes
+            - determine_production_release_targets
             - version_match
             - test_api_frontend
+            - test_api_latest
+            - test_api_legacy
+            - test_api_deprecated
         steps:
-            - run: echo "Frontend deployment is blocked because the frontend contract test or API version check failed."
+            - run: echo "Production frontend deploy"

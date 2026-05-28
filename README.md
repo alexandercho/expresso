@@ -8,7 +8,7 @@ The choices in this repo are intentionally optimized for simple, easy-to-read, q
 
 * `frontend/` - Expo app for iOS, Android, and web
 * `backend/` - Express API with lightweight starter routes
-* `agents/` - subagent rules for frontend, backend, UI, repo conventions, and refactors
+* `agents/` - subagent rules for frontend, backend, repo conventions, API testing, and shared code style
 * `scripts/` - root helper scripts for running the project
 
 ## Runtime
@@ -127,6 +127,56 @@ Keep each subagent read-only until the merged plan is approved.
 ```
 
 In practice, Codex may spawn fewer than 6 subagents if some workstreams are not truly independent, but this is the shape of a prompt that can support up to six parallel lanes. ☕
+
+## Branch Flow ☕
+
+This repo is designed around two protected branches:
+
+* `develop` is the default branch and the staging branch
+* `main` is the production branch
+
+### Pull Requests Into `develop`
+
+When you open a pull request into `develop`, GitHub Actions runs:
+
+* `frontend` lint
+* `backend` lint
+* frontend contract API tests
+* latest API tests
+* legacy API tests
+* deprecated API tests
+
+If any of those checks fail, the PR should not be merged. If you push more commits to the PR branch, the checks rerun automatically.
+
+### Merges Into `develop`
+
+When a PR is merged into `develop`, the same lint and API test pipeline runs again on the resulting push. If everything passes:
+
+* the backend gets a staging deploy only when files under `backend/` changed
+* the frontend gets a staging deploy only when files under `frontend/` changed
+
+That keeps staging deploys focused on real app changes and avoids wasting deploys on things like README-only updates.
+
+### Pull Requests From `develop` Into `main`
+
+Pull requests from `develop` into `main` still run the lint and API test pipeline, and they also run a production release version check:
+
+* only the `develop` branch is allowed to merge into `main`
+* `backend/package.json` must be incremented to count as a backend production release
+* `frontend/package.json` and `frontend/app.json` must both be incremented to count as a frontend production release
+* if neither target is incremented, the PR fails
+* if only one target is incremented, the PR can still pass and only that target is eligible for production deploy
+
+### Merges Into `main`
+
+When `develop` is merged into `main`, the pipeline compares the merged versions against the previous `main` commit:
+
+* if the backend version was incremented, the backend gets a production deploy
+* if both the frontend package version and Expo app version were incremented, the frontend gets a production deploy
+* if both were incremented, both deploy
+* if neither was incremented, the release-target job fails
+
+For now, all deploy steps are echo commands, but the branch and gating logic is set up for real staging and production deployment hooks later.
 
 ## Project Philosophy ☕️
 
