@@ -42,6 +42,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm --dir frontend lint
 
@@ -54,6 +57,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm --dir backend lint
 
@@ -81,6 +87,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm test:api:frontend
 
@@ -96,6 +105,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm test:api:latest
 
@@ -111,6 +123,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm test:api:legacy
 
@@ -126,6 +141,9 @@ jobs:
               with:
                   node-version: 26
                   cache: pnpm
+                  cache-dependency-path: |
+                      backend/pnpm-lock.yaml
+                      frontend/pnpm-lock.yaml
             - run: pnpm install:all
             - run: pnpm test:api:deprecated
 
