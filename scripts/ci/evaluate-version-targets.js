@@ -3,6 +3,7 @@ const { execSync } = require('node:child_process');
 
 const baseRef = process.argv[2];
 const requireAnyIncrement = process.argv.includes('--require-any');
+const allowInitialVersions = process.argv.includes('--allow-initial-versions');
 
 if (!baseRef) {
     throw new Error('A git ref or commit SHA to compare against is required.');
@@ -83,13 +84,18 @@ const targetResults = versionTargets.reduce((results, target) => {
 
 const frontendIncremented = targetResults.frontendPackage.incremented && targetResults.frontendApp.incremented;
 const anyIncremented = targetResults.backend.incremented || frontendIncremented;
+const allBaseVersionsAreInitial = Object.values(targetResults)
+    .every((targetResult) => targetResult.baseVersion === '1.0.0');
+const incrementRequirementSatisfied = anyIncremented || (allowInitialVersions && allBaseVersionsAreInitial);
 
 const outputs = {
     backend_incremented: String(targetResults.backend.incremented),
     frontend_package_incremented: String(targetResults.frontendPackage.incremented),
     frontend_app_incremented: String(targetResults.frontendApp.incremented),
     frontend_incremented: String(frontendIncremented),
-    any_incremented: String(anyIncremented)
+    any_incremented: String(anyIncremented),
+    all_base_versions_are_initial: String(allBaseVersionsAreInitial),
+    increment_requirement_satisfied: String(incrementRequirementSatisfied)
 };
 
 const githubOutputFile = process.env.GITHUB_OUTPUT;
@@ -109,11 +115,13 @@ process.stdout.write(
         `Frontend package version: ${targetResults.frontendPackage.baseVersion} -> ${targetResults.frontendPackage.currentVersion} (${outputs.frontend_package_incremented})`,
         `Frontend app version: ${targetResults.frontendApp.baseVersion} -> ${targetResults.frontendApp.currentVersion} (${outputs.frontend_app_incremented})`,
         `Frontend release incremented: ${outputs.frontend_incremented}`,
-        `Any release incremented: ${outputs.any_incremented}`
+        `Any release incremented: ${outputs.any_incremented}`,
+        `All base versions are initial: ${outputs.all_base_versions_are_initial}`,
+        `Increment requirement satisfied: ${outputs.increment_requirement_satisfied}`
     ].join('\n') + '\n'
 );
 
-if (requireAnyIncrement && !anyIncremented) {
+if (requireAnyIncrement && !incrementRequirementSatisfied) {
     throw new Error(
         'At least one production target must be version-incremented before releasing. Increment backend/package.json or both frontend/package.json and frontend/app.json.'
     );
