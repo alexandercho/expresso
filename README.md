@@ -8,7 +8,7 @@ The choices in this repo are intentionally optimized for simple, easy-to-read, q
 
 * `frontend/` - Expo app for iOS, Android, and web
 * `backend/` - Express API with lightweight starter routes
-* `agents/` - subagent rules for frontend, backend, UI, repo conventions, and refactors
+* `agents/` - subagent rules for frontend, backend, repo conventions, API testing, and shared code style
 * `scripts/` - root helper scripts for running the project
 
 ## Runtime
@@ -127,6 +127,73 @@ Keep each subagent read-only until the merged plan is approved.
 ```
 
 In practice, Codex may spawn fewer than 6 subagents if some workstreams are not truly independent, but this is the shape of a prompt that can support up to six parallel lanes. ☕
+
+## Branch Flow ☕
+
+This repo is designed around two protected branches:
+
+* `develop` is the default branch and the staging branch
+* `main` is the production branch
+
+### Pull Requests Into `develop`
+
+When you open a pull request into `develop`, GitHub Actions runs:
+
+* `frontend` lint
+* `backend` lint
+* frontend contract API tests
+* latest API tests
+* legacy API tests
+* deprecated API tests
+
+If any of those checks fail, the PR should not be merged. If you push more commits to the PR branch, the checks rerun automatically.
+
+### Merges Into `develop`
+
+When a PR is merged into `develop`, the same lint and API test pipeline runs again on the resulting push. If everything passes:
+
+* the backend gets a staging deploy only when files under `backend/` changed
+* the frontend gets a staging deploy only when files under `frontend/` changed
+
+That keeps staging deploys focused on real app changes and avoids wasting deploys on things like README-only updates.
+
+### Pull Requests From `develop` Into `main`
+
+Pull requests from `develop` into `main` still run the lint and API test pipeline.
+
+* only the `develop` branch is allowed to merge into `main`
+* `Check Production Version Bumps` compares the incoming versions against `origin/main`
+* if `main` is still on the initial `1.0.0` boilerplate versions, the version bump is optional
+* after `main` moves past `1.0.0`, at least one production target must be version-incremented for the check to pass
+
+### Merges Into `main`
+
+Right now, the production version-selection and production deploy jobs are commented out in [.github/workflows/ci.yml](/Users/alex/Code/expresso/.github/workflows/ci.yml:1).
+
+Once you wire up real production deployments, uncomment:
+
+* `determine_production_release_targets`
+* `production_deploy_backend`
+* `production_deploy_frontend`
+
+The production version check is already active for pull requests into `main`, with the special case that `1.0.0` on `main` is treated as the initial boilerplate state where a bump is optional.
+
+### Importing The Rulesets
+
+The repo includes importable GitHub ruleset files in [.github/rulesets](/Users/alex/Code/expresso/.github/rulesets):
+
+* [develop-ruleset.json](/Users/alex/Code/expresso/.github/rulesets/develop-ruleset.json:1)
+* [main-ruleset.json](/Users/alex/Code/expresso/.github/rulesets/main-ruleset.json:1)
+
+Import them one at a time:
+
+1. Open your repository on GitHub.
+2. Go to `Settings` → `Rules` → `Rulesets`.
+3. Click `New ruleset` → `Import a ruleset`.
+4. Import `develop-ruleset.json` and save it.
+5. Repeat the process for `main-ruleset.json`.
+
+The rulesets reference the GitHub Actions job display names from [.github/workflows/ci.yml](/Users/alex/Code/expresso/.github/workflows/ci.yml:1). If GitHub shows a required check under a slightly different context name after the first workflow run, edit the imported ruleset and swap in the exact check name GitHub displays.
 
 ## Project Philosophy ☕️
 
