@@ -9,31 +9,27 @@ module.exports = defineConfig([
         settings: {
             'import/resolver': {
                 typescript: {
-                    project: './jsconfig.json',
+                    project: './jsconfig.json'
                 },
-                node: true,
-            },
+                node: true
+            }
         },
         rules: {
             'no-trailing-spaces': 'error',
             'eol-last': ['error', 'always'],
             'no-unused-vars': ['error', {
                 argsIgnorePattern: '^_',
-                varsIgnorePattern: '^_',
+                varsIgnorePattern: '^_'
             }],
-
-            // =========================
-            // Formatting (via ESLint, not Prettier)
-            // =========================
-
+            'object-shorthand': ['error', 'always'],
             'comma-dangle': ['error', 'never'], // no trailing commas
             'indent': ['error', 4, {
-                SwitchCase: 1,
+                SwitchCase: 1
             }],
             'no-multiple-empty-lines': ['error', {
                 max: 1,
-                maxEOF: 1,
+                maxEOF: 1
             }]
-        },
-    },
+        }
+    }
 ]);

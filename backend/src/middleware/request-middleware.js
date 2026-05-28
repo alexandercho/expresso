@@ -1,5 +1,3 @@
-const requestMiddleware = (req, res, next) => {
-    return next();
-};
+const requestMiddleware = (_req, _res, next) => next();
 
 module.exports = requestMiddleware;

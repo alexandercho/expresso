@@ -45,6 +45,7 @@ Example:
 * Minimize redundant fetching across screens, components, and modals by reusing compatible response shapes when it remains efficient
 * If a proposed feature placement would create inefficient or repetitive request patterns, propose an alternative placement or interaction model
 * If a feature must remain in that location, add purpose-built requests while preserving backward compatibility for older app versions until deprecation is explicitly approved
+* When considering whether to extend an existing endpoint or add a new one, prefer the existing endpoint only if the added data or logic does not create noticeable perceived latency for the frontend experience that depends on it
 
 ---
 
@@ -54,6 +55,9 @@ Example:
 * Use the app version number as the source of truth when behavior must differ between current and older clients
 * If backend logic exists only for older app versions, isolate it into clearly named sections or dedicated files so current-path logic stays easy to follow
 * Keep version-specific compatibility code organized in a way that makes future cleanup straightforward once deprecation is explicitly approved
+* When endpoint deprecation is approved, the backend major version should be incremented and the new current frontend path should use the new explicit endpoint version
+* A route or function should move into legacy support when the current frontend no longer uses it but older supported frontends still may
+* Legacy-only routes or functions that still work for older app versions should emit deprecation warnings until their removal is explicitly approved
 
 ---
 

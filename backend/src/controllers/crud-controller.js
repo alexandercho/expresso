@@ -12,5 +12,5 @@ module.exports = {
     deleteResource,
     getResource,
     postResource,
-    putResource,
+    putResource
 };

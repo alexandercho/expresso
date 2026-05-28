@@ -34,13 +34,14 @@ Current safe config:
 
 ```env
 EXPO_PUBLIC_API_BASE_URL=http://localhost:3001
+EXPO_PUBLIC_MIN_SUPPORTED_API_VERSION=v1
 ```
 
 If you test on a physical device, replace `localhost` with your machine's local network IP.
 
 ## Frontend Rules Snapshot ☕
 
-This app is guided by `agents/frontend.md`, `agents/ui.md`, and `agents/repos.md`.
+This app is guided by `agents/frontend.md` and `agents/repos.md`.
 
 Important expectations:
 
@@ -54,7 +55,14 @@ Important expectations:
 
 ## API Client
 
-The API client lives in `frontend/lib/api.js` and reads from `process.env.EXPO_PUBLIC_API_BASE_URL`.
+The API client lives in `frontend/lib/api.js`, reads from `process.env.EXPO_PUBLIC_API_BASE_URL`, and centralizes the current versioned API path in one place.
+
+Current pattern:
+
+* `/health` remains an unversioned root health endpoint
+* application requests are built from the shared `EXPO_PUBLIC_MIN_SUPPORTED_API_VERSION`
+* the frontend checks `/health` for `latestSupportedApiVersion` before using versioned application endpoints
+* screens and components should call semantic client functions instead of building endpoint URLs directly
 
 Shared naming matters:
 

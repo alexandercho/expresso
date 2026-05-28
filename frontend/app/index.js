@@ -1,6 +1,6 @@
-import HelloWorld from '@/components/HelloWorld';
+import HelloWorldScreen from '@/screens/HelloWorldScreen';
 export default function HomeScreen() {
     return (
-        <HelloWorld />
+        <HelloWorldScreen />
     );
 }

@@ -10,6 +10,11 @@
         "dev": "\"$npm_node_execpath\" scripts/start.js",
         "start": "\"$npm_node_execpath\" scripts/start.js",
         "start:backend": "pnpm --dir backend dev",
-        "start:frontend": "pnpm --dir frontend start"
+        "start:frontend": "pnpm --dir frontend start",
+        "test:api": "pnpm --dir backend test:api",
+        "test:api:frontend": "pnpm --dir backend test:api:frontend",
+        "test:api:latest": "pnpm --dir backend test:api:latest",
+        "test:api:legacy": "pnpm --dir backend test:api:legacy",
+        "test:api:deprecated": "pnpm --dir backend test:api:deprecated"
     }
 }

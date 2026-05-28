@@ -21,7 +21,12 @@
         "start": "\"$npm_node_execpath\" src/server.js",
         "dev": "\"$npm_node_execpath\" --watch src/server.js",
         "lint": "\"$npm_node_execpath\" ./node_modules/eslint/bin/eslint.js src",
-        "lint:fix": "\"$npm_node_execpath\" ./node_modules/eslint/bin/eslint.js src --fix"
+        "lint:fix": "\"$npm_node_execpath\" ./node_modules/eslint/bin/eslint.js src --fix",
+        "test:api": "\"$npm_node_execpath\" --test tests/api/*.test.js",
+        "test:api:frontend": "\"$npm_node_execpath\" --test tests/api/frontend-contract.test.js",
+        "test:api:latest": "\"$npm_node_execpath\" --test tests/api/latest.test.js",
+        "test:api:legacy": "\"$npm_node_execpath\" --test tests/api/legacy.test.js",
+        "test:api:deprecated": "\"$npm_node_execpath\" --test tests/api/deprecated.test.js"
     },
     "dependencies": {
         "express": "^5.2.1"

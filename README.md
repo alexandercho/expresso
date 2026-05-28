@@ -1,6 +1,6 @@
 # Expresso ☕
 
-Expresso is a full-stack starter brewed for quick iteration: an Expo Router frontend, an Express backend, and an agent rule system that keeps both sides aligned. ☕️
+Expresso is a full-stack starter brewed for quick iteration: an Expo Router frontend, an Express backend, and an agent rule system that keeps both sides aligned. Now enjoy some JavaScript Expresso ☕️
 
 The choices in this repo are intentionally optimized for simple, easy-to-read, quick-to-develop full-stack work. The project direction started from wanting React Native Expo development across multiple platforms to feel good, lightweight, and sustainable day to day. ☕
 
@@ -70,6 +70,16 @@ The backend is an Express 5 service with a health route, placeholder CRUD endpoi
 
 More detail lives in [backend/README.md](/Users/alex/Code/expresso/backend/README.md:1).
 
+API compatibility tests can be run from the root with:
+
+```bash
+pnpm test:api
+pnpm test:api:frontend
+pnpm test:api:latest
+pnpm test:api:legacy
+pnpm test:api:deprecated
+```
+
 ## Agent Setup 🤖☕
 
 The repo uses markdown-based subagents in `agents/` to keep implementation decisions consistent.
@@ -79,17 +89,44 @@ Core agent files:
 * `agents/AGENTS.md` - routing and priority rules for the full agent system
 * `agents/frontend.md` - Expo, cross-platform, routing, loading, and component rules
 * `agents/backend.md` - Express, API, compatibility, and import rules
-* `agents/ui.md` - theming, tokens, and color-library rules
 * `agents/repos.md` - shared frontend/backend contract rules
-* `agents/shared/javascript-styles.md` - repo-wide JavaScript style rules
-* `agents/shared/refactor.md` - refactor doctrine and override rules
+* `agents/shared/api-testing.md` - shared frontend/backend API compatibility test workflow rules
+* `agents/shared/code-style.md` - shared JavaScript style, cleanup, and refactor doctrine
 
 The intended flow is:
 
 * use `repos.md` for cross-boundary decisions
 * use `frontend.md` and `backend.md` for platform-specific implementation
-* use `ui.md` for visual system choices
-* use `shared/refactor.md` when cleanup decisions conflict with lower-priority local style rules
+* use `frontend.md` for visual system choices in frontend work
+* use `shared/code-style.md` for shared style and refactor decisions across the repo
+
+Example Codex CLI prompt for up to 6 parallel subagents:
+
+```text
+Use parallel subagents for independent workstreams and then merge the results into one implementation plan.
+
+1. Frontend routing and screen requirements
+   Follow agents/AGENTS.md, agents/frontend.md, agents/repos.md.
+
+2. Frontend UI and styling system review
+   Follow agents/AGENTS.md, agents/frontend.md, agents/repos.md.
+
+3. Backend API design
+   Follow agents/AGENTS.md, agents/backend.md, agents/repos.md.
+
+4. Shared frontend/backend contract review
+   Follow agents/AGENTS.md, agents/repos.md.
+
+5. API compatibility testing review
+   Follow agents/AGENTS.md, agents/shared/api-testing.md, agents/backend.md, agents/repos.md.
+
+6. JavaScript style, maintainability, and risk review
+   Follow agents/AGENTS.md, agents/shared/code-style.md, agents/backend.md, agents/frontend.md, and agents/repos.md.
+
+Keep each subagent read-only until the merged plan is approved.
+```
+
+In practice, Codex may spawn fewer than 6 subagents if some workstreams are not truly independent, but this is the shape of a prompt that can support up to six parallel lanes. ☕
 
 ## Project Philosophy ☕️
 

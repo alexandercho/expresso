@@ -1,0 +1,46 @@
+name: Manual Deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+            target:
+                description: Deploy target
+                required: true
+                type: choice
+                options:
+                    - backend
+                    - frontend
+
+jobs:
+    manual_backend_deploy:
+        runs-on: ubuntu-latest
+        if: inputs.target == 'backend'
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26
+                  cache: pnpm
+            - run: pnpm install:all
+            - run: pnpm test:api:latest
+            - run: pnpm test:api:legacy
+            - run: pnpm test:api:deprecated
+              continue-on-error: true
+            - run: echo "Manual backend deploy"
+
+    manual_frontend_deploy:
+        runs-on: ubuntu-latest
+        if: inputs.target == 'frontend'
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26
+                  cache: pnpm
+            - run: pnpm install:all
+            - run: test -n "$(git show --name-only --pretty='' HEAD -- frontend)"
+            - run: node scripts/ci/check-api-version-match.js
+            - run: pnpm test:api:frontend
+            - run: echo "Manual frontend deploy"

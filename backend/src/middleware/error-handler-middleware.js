@@ -1,4 +1,4 @@
-const errorHandlerMiddleware = (error, req, res, next) => {
+const errorHandlerMiddleware = (error, req, res, _next) => {
     if (error.type === 'entity.too.large') {
         return res.status(413).json({ error: 'Request body is too large.' });
     }

@@ -15,7 +15,8 @@ module.exports = [
             'no-unused-vars': ['error', {
                 argsIgnorePattern: '^_',
                 varsIgnorePattern: '^_'
-            }]
+            }],
+            'object-shorthand': ['error', 'always']
         }
     }
 ];
