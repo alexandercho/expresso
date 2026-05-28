@@ -178,6 +178,23 @@ When `develop` is merged into `main`, the pipeline compares the merged versions 
 
 For now, all deploy steps are echo commands, but the branch and gating logic is set up for real staging and production deployment hooks later.
 
+### Importing The Rulesets
+
+The repo includes importable GitHub ruleset files in [.github/rulesets](/Users/alex/Code/expresso/.github/rulesets):
+
+* [develop-ruleset.json](/Users/alex/Code/expresso/.github/rulesets/develop-ruleset.json:1)
+* [main-ruleset.json](/Users/alex/Code/expresso/.github/rulesets/main-ruleset.json:1)
+
+Import them one at a time:
+
+1. Open your repository on GitHub.
+2. Go to `Settings` → `Rules` → `Rulesets`.
+3. Click `New ruleset` → `Import a ruleset`.
+4. Import `develop-ruleset.json` and save it.
+5. Repeat the process for `main-ruleset.json`.
+
+The rulesets reference the GitHub Actions job display names from [.github/workflows/ci.yml](/Users/alex/Code/expresso/.github/workflows/ci.yml:1). If GitHub shows a required check under a slightly different context name after the first workflow run, edit the imported ruleset and swap in the exact check name GitHub displays.
+
 ## Project Philosophy ☕️
 
 This setup favors:

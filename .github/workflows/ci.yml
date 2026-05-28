@@ -1,4 +1,4 @@
-name: CI and Deploy
+name: Quality and Release
 
 on:
     pull_request:
@@ -17,6 +17,7 @@ on:
 
 jobs:
     changes:
+        name: Detect Changed Areas
         runs-on: ubuntu-latest
         outputs:
             backend_changed: ${{ steps.filter.outputs.backend }}
@@ -34,6 +35,7 @@ jobs:
                         - 'frontend/**'
 
     lint_frontend:
+        name: Lint Frontend
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -49,6 +51,7 @@ jobs:
             - run: pnpm --dir frontend lint
 
     lint_backend:
+        name: Lint Backend
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -64,6 +67,7 @@ jobs:
             - run: pnpm --dir backend lint
 
     version_match:
+        name: Check API Version Match
         runs-on: ubuntu-latest
         needs:
             - lint_frontend
@@ -76,6 +80,7 @@ jobs:
             - run: node scripts/ci/check-api-version-match.js
 
     test_api_frontend:
+        name: Test Frontend API Contract
         runs-on: ubuntu-latest
         needs:
             - lint_frontend
@@ -94,6 +99,7 @@ jobs:
             - run: pnpm test:api:frontend
 
     test_api_latest:
+        name: Test Latest API
         runs-on: ubuntu-latest
         needs:
             - lint_frontend
@@ -112,6 +118,7 @@ jobs:
             - run: pnpm test:api:latest
 
     test_api_legacy:
+        name: Test Legacy API
         runs-on: ubuntu-latest
         needs:
             - lint_frontend
@@ -130,6 +137,7 @@ jobs:
             - run: pnpm test:api:legacy
 
     test_api_deprecated:
+        name: Test Deprecated API
         runs-on: ubuntu-latest
         needs:
             - lint_frontend
@@ -148,6 +156,7 @@ jobs:
             - run: pnpm test:api:deprecated
 
     validate_main_pr_source:
+        name: Check Main PR Source
         runs-on: ubuntu-latest
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         steps:
@@ -159,6 +168,7 @@ jobs:
                   fi
 
     validate_release_versions:
+        name: Check Production Version Bumps
         runs-on: ubuntu-latest
         if: github.event_name == 'pull_request' && github.head_ref == 'develop' && github.base_ref == 'main'
         outputs:
@@ -182,6 +192,7 @@ jobs:
               run: node scripts/ci/evaluate-version-targets.js origin/main --require-any
 
     staging_deploy_backend:
+        name: Deploy Backend to Staging
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
@@ -203,6 +214,7 @@ jobs:
             - run: echo "Staging backend deploy"
 
     staging_deploy_frontend:
+        name: Deploy Frontend to Staging
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
@@ -224,6 +236,7 @@ jobs:
             - run: echo "Staging frontend deploy"
 
     determine_production_release_targets:
+        name: Select Production Release Targets
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         outputs:
@@ -245,6 +258,7 @@ jobs:
               run: node scripts/ci/evaluate-version-targets.js "${{ github.event.before }}" --require-any
 
     production_deploy_backend:
+        name: Deploy Backend to Production
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
@@ -266,6 +280,7 @@ jobs:
             - run: echo "Production backend deploy"
 
     production_deploy_frontend:
+        name: Deploy Frontend to Production
         runs-on: ubuntu-latest
         if: >
             github.event_name == 'push' &&
