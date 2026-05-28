@@ -1,0 +1,32 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Minimal Express backend skeleton with placeholder CRUD routes and a health check.",
+    "main": "src/server.js",
+    "packageManager": "pnpm@10.12.1",
+    "engines": {
+        "node": "26.x"
+    },
+    "imports": {
+        "#app": "./src/app.js",
+        "#controllers/*": "./src/controllers/*.js",
+        "#data/*": "./src/data/*.js",
+        "#middleware/*": "./src/middleware/*.js",
+        "#routes": "./src/routes/index.js",
+        "#routes/*": "./src/routes/*.js",
+        "#utils/*": "./src/utils/*.js"
+    },
+    "scripts": {
+        "start": "\"$npm_node_execpath\" src/server.js",
+        "dev": "\"$npm_node_execpath\" --watch src/server.js",
+        "lint": "\"$npm_node_execpath\" ./node_modules/eslint/bin/eslint.js src",
+        "lint:fix": "\"$npm_node_execpath\" ./node_modules/eslint/bin/eslint.js src --fix"
+    },
+    "dependencies": {
+        "express": "^5.2.1"
+    },
+    "devDependencies": {
+        "eslint": "^9.39.1"
+    }
+}
