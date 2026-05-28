@@ -159,24 +159,24 @@ That keeps staging deploys focused on real app changes and avoids wasting deploy
 
 ### Pull Requests From `develop` Into `main`
 
-Pull requests from `develop` into `main` still run the lint and API test pipeline, and they also run a production release version check:
+Pull requests from `develop` into `main` still run the lint and API test pipeline.
 
 * only the `develop` branch is allowed to merge into `main`
-* `backend/package.json` must be incremented to count as a backend production release
-* `frontend/package.json` and `frontend/app.json` must both be incremented to count as a frontend production release
-* if neither target is incremented, the PR fails
-* if only one target is incremented, the PR can still pass and only that target is eligible for production deploy
+* `Check Production Version Bumps` compares the incoming versions against `origin/main`
+* if `main` is still on the initial `1.0.0` boilerplate versions, the version bump is optional
+* after `main` moves past `1.0.0`, at least one production target must be version-incremented for the check to pass
 
 ### Merges Into `main`
 
-When `develop` is merged into `main`, the pipeline compares the merged versions against the previous `main` commit:
+Right now, the production version-selection and production deploy jobs are commented out in [.github/workflows/ci.yml](/Users/alex/Code/expresso/.github/workflows/ci.yml:1).
 
-* if the backend version was incremented, the backend gets a production deploy
-* if both the frontend package version and Expo app version were incremented, the frontend gets a production deploy
-* if both were incremented, both deploy
-* if neither was incremented, the release-target job fails
+Once you wire up real production deployments, uncomment:
 
-For now, all deploy steps are echo commands, but the branch and gating logic is set up for real staging and production deployment hooks later.
+* `determine_production_release_targets`
+* `production_deploy_backend`
+* `production_deploy_frontend`
+
+The production version check is already active for pull requests into `main`, with the special case that `1.0.0` on `main` is treated as the initial boilerplate state where a bump is optional.
 
 ### Importing The Rulesets
 

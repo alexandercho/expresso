@@ -171,12 +171,6 @@ jobs:
         name: Check Production Version Bumps
         runs-on: ubuntu-latest
         if: github.event_name == 'pull_request' && github.head_ref == 'develop' && github.base_ref == 'main'
-        outputs:
-            any_incremented: ${{ steps.version_check.outputs.any_incremented }}
-            backend_incremented: ${{ steps.version_check.outputs.backend_incremented }}
-            frontend_incremented: ${{ steps.version_check.outputs.frontend_incremented }}
-            frontend_package_incremented: ${{ steps.version_check.outputs.frontend_package_incremented }}
-            frontend_app_incremented: ${{ steps.version_check.outputs.frontend_app_incremented }}
         steps:
             - uses: actions/checkout@v4
               with:
@@ -188,8 +182,7 @@ jobs:
 
             - run: git fetch origin main
 
-            - id: version_check
-              run: node scripts/ci/evaluate-version-targets.js origin/main --require-any
+            - run: node scripts/ci/evaluate-version-targets.js origin/main --require-any --allow-initial-versions
 
     staging_deploy_backend:
         name: Deploy Backend to Staging
@@ -235,68 +228,69 @@ jobs:
         steps:
             - run: echo "Staging frontend deploy"
 
-    determine_production_release_targets:
-        name: Select Production Release Targets
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        outputs:
-            any_incremented: ${{ steps.version_check.outputs.any_incremented }}
-            backend_incremented: ${{ steps.version_check.outputs.backend_incremented }}
-            frontend_incremented: ${{ steps.version_check.outputs.frontend_incremented }}
-            frontend_package_incremented: ${{ steps.version_check.outputs.frontend_package_incremented }}
-            frontend_app_incremented: ${{ steps.version_check.outputs.frontend_app_incremented }}
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 26
-
-            - id: version_check
-              run: node scripts/ci/evaluate-version-targets.js "${{ github.event.before }}" --require-any
-
-    production_deploy_backend:
-        name: Deploy Backend to Production
-        runs-on: ubuntu-latest
-        if: >
-            github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
-            needs.determine_production_release_targets.outputs.backend_incremented == 'true' &&
-            needs.version_match.result == 'success' &&
-            needs.test_api_frontend.result == 'success' &&
-            needs.test_api_latest.result == 'success' &&
-            needs.test_api_legacy.result == 'success' &&
-            needs.test_api_deprecated.result == 'success'
-        needs:
-            - determine_production_release_targets
-            - version_match
-            - test_api_frontend
-            - test_api_latest
-            - test_api_legacy
-            - test_api_deprecated
-        steps:
-            - run: echo "Production backend deploy"
-
-    production_deploy_frontend:
-        name: Deploy Frontend to Production
-        runs-on: ubuntu-latest
-        if: >
-            github.event_name == 'push' &&
-            github.ref == 'refs/heads/main' &&
-            needs.determine_production_release_targets.outputs.frontend_incremented == 'true' &&
-            needs.version_match.result == 'success' &&
-            needs.test_api_frontend.result == 'success' &&
-            needs.test_api_latest.result == 'success' &&
-            needs.test_api_legacy.result == 'success' &&
-            needs.test_api_deprecated.result == 'success'
-        needs:
-            - determine_production_release_targets
-            - version_match
-            - test_api_frontend
-            - test_api_latest
-            - test_api_legacy
-            - test_api_deprecated
-        steps:
-            - run: echo "Production frontend deploy"
+    # Uncomment these production release jobs once real production deployments are wired up.
+    # determine_production_release_targets:
+    #     name: Select Production Release Targets
+    #     runs-on: ubuntu-latest
+    #     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #     outputs:
+    #         any_incremented: ${{ steps.version_check.outputs.any_incremented }}
+    #         backend_incremented: ${{ steps.version_check.outputs.backend_incremented }}
+    #         frontend_incremented: ${{ steps.version_check.outputs.frontend_incremented }}
+    #         frontend_package_incremented: ${{ steps.version_check.outputs.frontend_package_incremented }}
+    #         frontend_app_incremented: ${{ steps.version_check.outputs.frontend_app_incremented }}
+    #     steps:
+    #         - uses: actions/checkout@v4
+    #           with:
+    #               fetch-depth: 0
+    #
+    #         - uses: actions/setup-node@v4
+    #           with:
+    #               node-version: 26
+    #
+    #         - id: version_check
+    #           run: node scripts/ci/evaluate-version-targets.js "${{ github.event.before }}" --require-any
+    #
+    # production_deploy_backend:
+    #     name: Deploy Backend to Production
+    #     runs-on: ubuntu-latest
+    #     if: >
+    #         github.event_name == 'push' &&
+    #         github.ref == 'refs/heads/main' &&
+    #         needs.determine_production_release_targets.outputs.backend_incremented == 'true' &&
+    #         needs.version_match.result == 'success' &&
+    #         needs.test_api_frontend.result == 'success' &&
+    #         needs.test_api_latest.result == 'success' &&
+    #         needs.test_api_legacy.result == 'success' &&
+    #         needs.test_api_deprecated.result == 'success'
+    #     needs:
+    #         - determine_production_release_targets
+    #         - version_match
+    #         - test_api_frontend
+    #         - test_api_latest
+    #         - test_api_legacy
+    #         - test_api_deprecated
+    #     steps:
+    #         - run: echo "Production backend deploy"
+    #
+    # production_deploy_frontend:
+    #     name: Deploy Frontend to Production
+    #     runs-on: ubuntu-latest
+    #     if: >
+    #         github.event_name == 'push' &&
+    #         github.ref == 'refs/heads/main' &&
+    #         needs.determine_production_release_targets.outputs.frontend_incremented == 'true' &&
+    #         needs.version_match.result == 'success' &&
+    #         needs.test_api_frontend.result == 'success' &&
+    #         needs.test_api_latest.result == 'success' &&
+    #         needs.test_api_legacy.result == 'success' &&
+    #         needs.test_api_deprecated.result == 'success'
+    #     needs:
+    #         - determine_production_release_targets
+    #         - version_match
+    #         - test_api_frontend
+    #         - test_api_latest
+    #         - test_api_legacy
+    #         - test_api_deprecated
+    #     steps:
+    #         - run: echo "Production frontend deploy"
